@@ -1,265 +1,196 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to Lec 10</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VacciTrack | Hệ Thống Theo Dõi Tiêm Chủng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .main-bg {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .blob {
+            position: absolute;
+            filter: blur(50px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: move 8s infinite alternate;
+        }
+        
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(20px, -20px) scale(1.1); }
+        }
+
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-bounce-slow {
+            animation: bounce-slow 2s infinite;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-  <!-- Navigation Bar -->
-  <nav class="bg-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center">
-          <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-          <span class="text-xl font-bold text-gray-800">Lec 10</span>
-        </div>
-        <div class="flex items-center space-x-8">
-          <a
-            href="/"
-            class="text-blue-600 hover:text-blue-600 transition duration-300"
-          >
-            <i class="fas fa-home mr-2"></i>Home
-          </a>
-          <a
-            href="/vaccines"
-            class="text-gray-600 hover:text-blue-600 transition duration-300"
-          >
-            <i class="fas fa-syringe mr-2"></i>Vaccines
-          </a>
-          <a
-            href="/analytics"
-            class="text-gray-600 hover:text-blue-600 transition duration-300"
-          >
-            <i class="fas fa-chart-bar mr-2"></i>Analytics
-          </a>
-        </div>
-      </div>
-    </div>
-  </nav>
+<body class="text-slate-800 main-bg relative overflow-x-hidden">
+    
+    <!-- Background Blobs -->
+    <div class="blob bg-purple-300 w-96 h-96 rounded-full top-0 left-0 -translate-x-1/3 -translate-y-1/3"></div>
+    <div class="blob bg-blue-300 w-96 h-96 rounded-full bottom-0 right-0 translate-x-1/3 translate-y-1/3"></div>
 
-  <!-- Header Section -->
-  <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h1 class="text-5xl font-bold mb-4">Welcome to Lec 10</h1>
-      <p class="text-xl text-blue-100">
-        Advanced Programming Concepts &amp; Data Visualization with Vaccination Data
-      </p>
-    </div>
-  </header>
+    <!-- Navigation Bar -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3 group cursor-pointer" onclick="window.location.href='/'">
+                    <div class="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-2 rounded-lg shadow-lg group-hover:shadow-indigo-300 transition-shadow">
+                        <i class="fas fa-syringe"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xl font-extrabold text-slate-900 leading-none">Vacci<span class="text-indigo-600">Track</span></span>
+                    </div>
+                </div>
+                <!-- Menu Desktop -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="/" class="px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 rounded-xl border border-indigo-100 transition shadow-sm">Trang chủ</a>
+                    <a href="/vaccines" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-white/50 rounded-xl transition">Dữ liệu</a>
+                    <a href="/analytics" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-white/50 rounded-xl transition">Thống kê</a>
+                </div>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button class="text-slate-600 hover:text-indigo-600 focus:outline-none p-2 bg-white/50 rounded-lg">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <!-- Grid Layout -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-      <!-- Card 1 -->
-      <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 p-6">
-        <div class="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-          <i class="fas fa-code text-blue-600 text-2xl"></i>
+    <!-- Hero Section -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 flex flex-col md:flex-row items-center gap-12">
+        <!-- Left Content -->
+        <div class="md:w-1/2 space-y-8 z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur text-indigo-700 rounded-full text-sm font-bold border border-indigo-100 shadow-sm animate-bounce-slow">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                </span>
+                Cập nhật dữ liệu thời gian thực
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight text-slate-900">
+                Theo Dõi <br/>
+                <span class="gradient-text">Miễn Dịch Toàn Cầu</span>
+            </h1>
+            
+            <p class="text-lg md:text-xl text-slate-600 leading-relaxed max-w-lg font-medium">
+                Khám phá bức tranh tiêm chủng thế giới qua lăng kính dữ liệu. VacciTrack biến những con số khô khan thành những câu chuyện sống động và đầy màu sắc.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                <a href="/analytics" class="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-1 transition transform flex items-center justify-center gap-3">
+                    <i class="fas fa-chart-pie group-hover:rotate-12 transition-transform"></i> Xem Dashboard
+                </a>
+                <a href="/vaccines" class="px-8 py-4 bg-white text-slate-700 font-bold rounded-2xl shadow-lg border border-white/50 hover:bg-indigo-50 hover:text-indigo-600 transition flex items-center justify-center gap-3">
+                    <i class="fas fa-table"></i> Dữ liệu chi tiết
+                </a>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="flex items-center gap-8 pt-8 border-t border-indigo-100/50">
+                <div>
+                    <p class="text-3xl font-extrabold text-slate-900">200+</p>
+                    <p class="text-sm font-semibold text-slate-500">Quốc gia</p>
+                </div>
+                <div>
+                    <p class="text-3xl font-extrabold text-slate-900">10k+</p>
+                    <p class="text-sm font-semibold text-slate-500">Dòng dữ liệu</p>
+                </div>
+                <div>
+                    <p class="text-3xl font-extrabold text-slate-900">100%</p>
+                    <p class="text-sm font-semibold text-slate-500">Chính xác</p>
+                </div>
+            </div>
         </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">Programming Fundamentals</h3>
-        <p class="text-gray-600 mb-4">
-          Master core programming concepts including algorithms, data structures, and design patterns.
-        </p>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
-          Learn More <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
+        
+        <!-- Right Content: Feature Grid -->
+        <div class="md:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+            <!-- Card 1 -->
+            <div class="glass-panel p-6">
+                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4 text-2xl shadow-sm">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="font-bold text-xl mb-2 text-slate-900">Phân Tích Sâu</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Biểu đồ trực quan hóa tiến độ và xu hướng tiêm chủng toàn cầu.</p>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="glass-panel p-6 sm:translate-y-8">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 text-2xl shadow-sm">
+                    <i class="fas fa-globe-americas"></i>
+                </div>
+                <h3 class="font-bold text-xl mb-2 text-slate-900">Dữ Liệu Lớn</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Bao phủ thông tin từ hàng trăm quốc gia và vùng lãnh thổ.</p>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="glass-panel p-6">
+                <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-4 text-2xl shadow-sm">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <h3 class="font-bold text-xl mb-2 text-slate-900">Bộ Lọc Thông Minh</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Dễ dàng tìm kiếm thông tin theo quốc gia, loại vaccine hay thời gian.</p>
+            </div>
+            
+            <!-- Card 4 -->
+            <div class="glass-panel p-6 sm:translate-y-8">
+                <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mb-4 text-2xl shadow-sm">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3 class="font-bold text-xl mb-2 text-slate-900">Python Core</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Xử lý backend mạnh mẽ với Flask và thư viện Pandas.</p>
+            </div>
+        </div>
+    </main>
 
-      <!-- Card 2 -->
-      <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 p-6">
-        <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <i class="fas fa-database text-green-600 text-2xl"></i>
+    <!-- Footer -->
+    <footer class="bg-white/50 backdrop-blur border-t border-indigo-100 mt-20 py-10">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 font-medium flex items-center justify-center gap-2">
+                © 2026 Vacci Track Project. Built with <i class="fas fa-heart text-rose-500 animate-pulse"></i> &amp; Coffee.
+            </p>
         </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">Data Management</h3>
-        <p class="text-gray-600 mb-4">
-          Explore database design, CSV data processing, and efficient storage solutions.
-        </p>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
-          Learn More <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
-
-      <!-- Card 3 -->
-      <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 p-6">
-        <div class="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-          <i class="fas fa-laptop-code text-purple-600 text-2xl"></i>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">Web Development</h3>
-        <p class="text-gray-600 mb-4">
-          Build modern web interfaces using HTML, CSS, JavaScript, and Tailwind CSS.
-        </p>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
-          Learn More <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 p-6">
-        <div class="flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
-          <i class="fas fa-chart-line text-yellow-600 text-2xl"></i>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">Data Visualization</h3>
-        <p class="text-gray-600 mb-4">
-          Learn to visualize vaccination data using charts and interactive dashboards.
-        </p>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
-          Learn More <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
-
-      <!-- Card 5 -->
-      <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 p-6">
-        <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-          <i class="fas fa-project-diagram text-red-600 text-2xl"></i>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">System Design</h3>
-        <p class="text-gray-600 mb-4">
-          Understand how to design data-driven web systems and dashboards.
-        </p>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
-          Learn More <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
-
-      <!-- Card 6 -->
-      <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 p-6">
-        <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
-          <i class="fas fa-users text-indigo-600 text-2xl"></i>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">Collaboration</h3>
-        <p class="text-gray-600 mb-4">
-          Work effectively in teams using version control and agile methodologies.
-        </p>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
-          Learn More <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
-    </div>
-
-    <!-- Statistics Section -->
-    <div class="bg-white rounded-lg shadow-md p-8 mb-12">
-      <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Course Overview</h2>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="text-center">
-          <div class="text-4xl font-bold text-blue-600 mb-2">
-            <i class="fas fa-book-open"></i>
-          </div>
-          <div class="text-3xl font-bold text-gray-800">12</div>
-          <div class="text-gray-600">Lectures</div>
-        </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-green-600 mb-2">
-            <i class="fas fa-clipboard-list"></i>
-          </div>
-          <div class="text-3xl font-bold text-gray-800">8</div>
-          <div class="text-gray-600">Assignments</div>
-        </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-purple-600 mb-2">
-            <i class="fas fa-clock"></i>
-          </div>
-          <div class="text-3xl font-bold text-gray-800">40</div>
-          <div class="text-gray-600">Hours</div>
-        </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-red-600 mb-2">
-            <i class="fas fa-certificate"></i>
-          </div>
-          <div class="text-3xl font-bold text-gray-800">1</div>
-          <div class="text-gray-600">Certificate</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Resources Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-md p-8 text-white">
-      <h2 class="text-3xl font-bold mb-6 text-center">Learning Resources</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="text-center">
-          <i class="fas fa-file-pdf text-5xl mb-4"></i>
-          <h3 class="text-xl font-semibold mb-2">Lecture Notes</h3>
-          <p class="text-blue-100">Download comprehensive PDF materials.</p>
-        </div>
-        <div class="text-center">
-          <i class="fas fa-video text-5xl mb-4"></i>
-          <h3 class="text-xl font-semibold mb-2">Video Tutorials</h3>
-          <p class="text-blue-100">Watch recorded lecture sessions.</p>
-        </div>
-        <div class="text-center">
-          <i class="fas fa-comments text-5xl mb-4"></i>
-          <h3 class="text-xl font-semibold mb-2">Discussion Forum</h3>
-          <p class="text-blue-100">Connect with peers and instructors.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Access Section -->
-    <div class="mt-12 text-center">
-      <h2 class="text-3xl font-bold text-gray-800 mb-6">Quick Access</h2>
-      <a
-        href="/vaccines"
-        class="inline-flex items-center px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transition duration-300"
-      >
-        <i class="fas fa-syringe mr-3 text-2xl"></i>
-        <span>View Vaccination Data</span>
-        <i class="fas fa-arrow-right ml-3"></i>
-      </a>
-      <p class="text-gray-600 mt-4">
-        Access country vaccination records and analytics dashboards.
-      </p>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-white mt-12 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <h4 class="text-lg font-semibold mb-4">
-            <i class="fas fa-info-circle mr-2"></i>About
-          </h4>
-          <p class="text-gray-400">
-            Lecture 10 provides comprehensive programming and data visualization education using real-world vaccination data.
-          </p>
-        </div>
-        <div>
-          <h4 class="text-lg font-semibold mb-4">
-            <i class="fas fa-link mr-2"></i>Quick Links
-          </h4>
-          <ul class="text-gray-400 space-y-2">
-            <li>
-              <a href="/vaccines" class="hover:text-white transition">
-                <i class="fas fa-angle-right mr-2"></i>Vaccination Table
-              </a>
-            </li>
-            <li>
-              <a href="/analytics" class="hover:text-white transition">
-                <i class="fas fa-angle-right mr-2"></i>Analytics Dashboard
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-lg font-semibold mb-4">
-            <i class="fas fa-envelope mr-2"></i>Contact
-          </h4>
-          <p class="text-gray-400">
-            <i class="fas fa-map-marker-alt mr-2"></i>Ho Chi Minh City, Vietnam<br />
-            <i class="fas fa-phone mr-2"></i>+84 123 456 789<br />
-            <i class="fas fa-envelope mr-2"></i>lec10@example.com
-          </p>
-        </div>
-      </div>
-      <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-        <p>&copy; 2024 Lecture 10. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
+    </footer>
 </body>
 </html>

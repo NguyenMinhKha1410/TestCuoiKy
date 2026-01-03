@@ -3,630 +3,785 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vaccine Analytics - Lec 10</title>
+    <title>Thống Kê Tiêm Chủng | VacciTrack</title>
 
-    <!-- Tailwind + Chart.js + FontAwesome -->
+    <!-- Tailwind + Chart.js + FontAwesome + Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-</head>
-<body class="bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                    <span class="text-xl font-bold text-gray-800">Lec 10</span>
-                </div>
-                <div class="flex items-center space-x-8">
-                    <a href="/" class="text-gray-600 hover:text-blue-600 transition duration-300">
-                        <i class="fas fa-home mr-2"></i>Home
-                    </a>
-                    <a href="/vaccines" class="text-gray-600 hover:text-blue-600 transition duration-300">
-                        <i class="fas fa-syringe mr-2"></i>Vaccines
-                    </a>
-                    <a href="/analytics" class="text-blue-600 hover:text-blue-700 font-semibold transition duration-300">
-                        <i class="fas fa-chart-bar mr-2"></i>Analytics
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-    <!-- Loading Spinner -->
-    <div id="loading" class="flex justify-center items-center py-20">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-        <span class="ml-4 text-gray-600 text-lg">Đang tải dữ liệu...</span>
-    </div>
-    <div id="dashboardContent" class="opacity-0 pointer-events-none">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-3xl md:text-4xl font-bold mb-2">Vaccine Analytics Dashboard</h1>
-            <p class="text-blue-100">
-                Phân tích dữ liệu tiêm chủng từ <span class="font-semibold">country_vaccinations.csv</span>
-            </p>
-        </div>
-    </header>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-  <!-- Main content -->
-  <main class="flex-1">
-    <div class="max-w-7xl mx-auto px-4 py-6">
-      <!-- Cards tổng quan -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500 mb-1">Số quốc gia</p>
-          <p id="countryCount" class="text-2xl font-bold text-gray-800">-</p>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        /* Gradient Background for Body */
+        .main-bg {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="text-slate-800 main-bg">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-indigo-50/90 backdrop-blur-sm">
+        <div class="relative w-20 h-20 mb-4">
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-white/50 rounded-full"></div>
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500 mb-1">Trung bình đã tiêm ≥1 mũi</p>
-          <p id="avgVaccinated" class="text-2xl font-bold text-blue-600">-</p>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500 mb-1">Trung bình đã tiêm đủ mũi</p>
-          <p id="avgFully" class="text-2xl font-bold text-green-600">-</p>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500 mb-1">Trung bình mũi tiêm/ngày</p>
-          <p id="avgDaily" class="text-2xl font-bold text-rose-600">-</p>
-        </div>
-      </div>
-
-      <!-- Bộ lọc -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-        <div class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-            <!-- Quốc gia -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Quốc gia
-              </label>
-              <select id="countrySelect"
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="all">Tất cả quốc gia</option>
-              </select>
-            </div>
-
-            <!-- Vaccine -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Loại vaccine
-              </label>
-              <select id="vaccineSelect"
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="all">Tất cả vaccine</option>
-              </select>
-            </div>
-
-            <!-- Từ ngày -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Từ ngày
-              </label>
-              <input type="date" id="startDate"
-                     class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-            </div>
-
-            <!-- Đến ngày -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Đến ngày
-              </label>
-              <input type="date" id="endDate"
-                     class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-            </div>
-          </div>
-
-          <!-- Nút reset -->
-          <div class="flex lg:flex-col gap-2">
-            <button id="resetFilters"
-                    class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hàng 1 biểu đồ -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <!-- Vaccinated vs Fully vaccinated (%) -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <h2 class="text-sm font-semibold text-gray-700 mb-2">
-            Vaccinated vs Fully vaccinated (%)
-          </h2>
-          <div class="h-72">
-            <canvas id="vaccinatedScatter"></canvas>
-          </div>
-        </div>
-
-        <!-- People vaccinated vs Fully vaccinated theo quốc gia -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <h2 class="text-sm font-semibold text-gray-700 mb-2">
-            People vaccinated vs Fully vaccinated theo quốc gia (Top 15)
-          </h2>
-          <div class="h-72">
-            <canvas id="countryBar"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hàng 2 biểu đồ -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <!-- Total / People vaccinated per hundred (Top 15) -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <h2 class="text-sm font-semibold text-gray-700 mb-2">
-            Total / People vaccinated per hundred (Top 15)
-          </h2>
-          <div class="h-72">
-            <canvas id="perHundredChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Daily vaccinations (raw vs smoothed) -->
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <h2 class="text-sm font-semibold text-gray-700 mb-2">
-            Daily vaccinations (raw vs smoothed)
-          </h2>
-          <div class="h-72">
-            <canvas id="dailyChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hàng 3 biểu đồ -->
-      <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
-        <h2 class="text-sm font-semibold text-gray-700 mb-2">
-          Vaccinated vs Fully vaccinated per hundred (toàn bộ dữ liệu)
-        </h2>
-        <div class="h-80">
-          <canvas id="perHundredScatter"></canvas>
-        </div>
-      </div>
-
+        <h2 class="text-xl font-bold text-indigo-900">Đang phân tích dữ liệu...</h2>
+        <p class="text-indigo-600 text-sm mt-2">Đang kết nối API Backend...</p>
     </div>
-  </main>
-  </div>
-  <!-- Footer -->
-  <footer class="bg-gray-900 text-gray-400 text-xs py-3">
-    <div class="max-w-7xl mx-auto px-4 text-center">
-      © 2024 Lecture 10. All rights reserved.
+
+    <!-- Main App Container -->
+    <div id="dashboardContent" class="opacity-0 transition-opacity duration-700 min-h-screen flex flex-col pointer-events-none">
+        
+        <!-- Top Navbar -->
+        <nav class="bg-white/80 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/'">
+                        <div class="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-2 rounded-lg shadow-lg group-hover:shadow-indigo-300 transition-shadow">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <span class="block text-lg font-bold text-slate-900 leading-none">VacciTrack</span>
+                            <span class="text-xs text-slate-500 font-medium">Analytics Suite</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 sm:space-x-4">
+                        <a href="/" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">Trang chủ</a>
+                        <a href="/vaccines" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">Dữ liệu</a>
+                        <span class="px-3 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 rounded-lg border border-indigo-100 shadow-sm">Thống kê</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Filter Bar -->
+        <div class="bg-white/60 backdrop-blur border-b border-indigo-100 py-4 shadow-sm z-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col xl:flex-row gap-4 justify-between items-center">
+                    <div class="flex items-center gap-2 text-indigo-900 font-bold whitespace-nowrap bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
+                        <i class="fas fa-filter text-indigo-500"></i> Bộ Lọc Thông Minh
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full xl:w-auto">
+                        <!-- Country Select -->
+                        <div class="relative group">
+                            <select id="countrySelect" class="w-full pl-3 pr-8 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm focus:ring-0 focus:border-indigo-500 appearance-none outline-none cursor-pointer hover:border-indigo-300 transition text-slate-700 font-medium">
+                                <option value="all">🌍 Tất cả Quốc gia</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-3 text-slate-400 text-xs pointer-events-none group-hover:text-indigo-500 transition"></i>
+                        </div>
+
+                        <!-- Vaccine Select -->
+                        <div class="relative group">
+                            <select id="vaccineSelect" class="w-full pl-3 pr-8 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm focus:ring-0 focus:border-indigo-500 appearance-none outline-none cursor-pointer hover:border-indigo-300 transition text-slate-700 font-medium">
+                                <option value="all">💉 Tất cả Vaccine</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-3 text-slate-400 text-xs pointer-events-none group-hover:text-indigo-500 transition"></i>
+                        </div>
+
+                        <!-- Date Start -->
+                        <div class="relative">
+                            <input type="date" id="startDate" class="w-full px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm text-slate-600 focus:border-indigo-500 outline-none hover:border-indigo-300 transition">
+                        </div>
+
+                        <!-- Date End -->
+                        <div class="relative">
+                            <input type="date" id="endDate" class="w-full px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm text-slate-600 focus:border-indigo-500 outline-none hover:border-indigo-300 transition">
+                        </div>
+
+                        <!-- Reset Button -->
+                        <button id="resetFilters" class="w-full px-4 py-2 bg-rose-50 border-2 border-rose-100 text-rose-600 rounded-xl text-sm font-bold hover:bg-rose-500 hover:text-white hover:border-rose-500 transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fas fa-redo-alt text-xs"></i> Đặt lại
+                        </button>
+                    </div>
+                </div>
+                <!-- Info Panel đã được xóa theo yêu cầu -->
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <main class="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-end mb-4 pb-2">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 tracking-tight">Tổng Quan Toàn Cầu</h1>
+                    <p class="text-slate-500 mt-1 font-medium">Thống kê thời gian thực về tiến độ tiêm chủng COVID-19.</p>
+                </div>
+                <div class="text-right hidden sm:block bg-white px-4 py-2 rounded-xl shadow-sm border border-indigo-50">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Cập nhật lần cuối</span>
+                    <p class="text-lg font-bold text-indigo-600" id="lastUpdatedDate">Đang tải...</p>
+                </div>
+            </div>
+
+            <!-- KPI Cards - COLORFUL VERSION -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Total Doses -->
+                <div class="relative overflow-hidden rounded-2xl p-6 shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm"><i class="fas fa-syringe"></i></div>
+                        </div>
+                        <p class="text-sm font-medium text-blue-100 uppercase tracking-wider">Tổng số mũi tiêm</p>
+                        <h3 id="kpiTotalVaccinations" class="text-2xl sm:text-3xl font-bold mt-1 drop-shadow-sm">0</h3>
+                    </div>
+                </div>
+
+                <!-- People Vaccinated -->
+                <div class="relative overflow-hidden rounded-2xl p-6 shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm"><i class="fas fa-user-shield"></i></div>
+                        </div>
+                        <p class="text-sm font-medium text-emerald-100 uppercase tracking-wider">Số người được tiêm</p>
+                        <h3 id="kpiPeopleVaccinated" class="text-2xl sm:text-3xl font-bold mt-1 drop-shadow-sm">0</h3>
+                    </div>
+                </div>
+
+                <!-- Fully Vaccinated -->
+                <div class="relative overflow-hidden rounded-2xl p-6 shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                        <p class="text-sm font-medium text-indigo-100 uppercase tracking-wider">Tiêm chủng đầy đủ</p>
+                        <h3 id="kpiFullyVaccinated" class="text-2xl sm:text-3xl font-bold mt-1 drop-shadow-sm">0</h3>
+                    </div>
+                </div>
+
+                <!-- Countries Count -->
+                <div class="relative overflow-hidden rounded-2xl p-6 shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm"><i class="fas fa-flag"></i></div>
+                        </div>
+                        <p class="text-sm font-medium text-rose-100 uppercase tracking-wider">Quốc gia/Khu vực</p>
+                        <h3 id="kpiCountries" class="text-2xl sm:text-3xl font-bold mt-1 drop-shadow-sm">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 1: Trend & Top Total -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Trend Chart -->
+                <div class="glass-panel p-6 lg:col-span-2 border-t-4 border-indigo-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span class="bg-indigo-100 text-indigo-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-chart-line"></i></span>
+                            Xu hướng Tiêm chủng Hàng ngày
+                        </h3>
+                    </div>
+                    <div class="relative h-72 sm:h-96 w-full">
+                        <canvas id="vaccineTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Countries by Total Doses -->
+                <div class="glass-panel p-6 border-t-4 border-emerald-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span class="bg-emerald-100 text-emerald-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-chart-pie"></i></span>
+                             Tổng liều Tiêm chủng Cao nhất
+                        </h3>
+                    </div>
+                    <div class="relative h-72 sm:h-96 w-full flex items-center justify-center">
+                        <canvas id="countryTotalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2: Vaccination Rate & Vaccine Types -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Top % Vaccinated -->
+                <div class="glass-panel p-6 lg:col-span-2 border-t-4 border-rose-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span class="bg-rose-100 text-rose-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-percentage"></i></span>
+                             Tỷ lệ Tiêm chủng Đầy đủ Cao nhất
+                        </h3>
+                        <span class="text-xs text-rose-600 bg-rose-50 px-2 py-1 rounded font-bold border border-rose-100">Trên 100 dân</span>
+                    </div>
+                    <div class="relative h-72 sm:h-96 w-full">
+                        <canvas id="topRateChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Vaccine Distribution -->
+                <div class="glass-panel p-6 border-t-4 border-blue-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-vial"></i></span>
+                             Các loại Vaccine Phổ biến
+                        </h3>
+                    </div>
+                    <div class="relative h-72 sm:h-96 w-full flex items-center justify-center">
+                        <canvas id="vaccineTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3: Monthly & Stacked Analysis -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Monthly Chart -->
+                <div class="glass-panel p-6 border-t-4 border-amber-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                             <span class="bg-amber-100 text-amber-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-calendar-alt"></i></span>
+                             Tiến độ theo Tháng
+                        </h3>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stacked Analysis -->
+                <div class="glass-panel p-6 border-t-4 border-purple-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                             <span class="bg-purple-100 text-purple-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-layer-group"></i></span>
+                             Tỷ lệ Tiêm 1 mũi vs Đầy đủ
+                        </h3>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="stackedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 4: Vaccine Popularity & Country Diversity (NEW) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Vaccine Popularity (By Country Count) -->
+                <div class="glass-panel p-6 border-t-4 border-cyan-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                             <span class="bg-cyan-100 text-cyan-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-globe"></i></span>
+                             Độ phủ sóng Vaccine (Số quốc gia)
+                        </h3>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="vaccineByCountryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Country Portfolio Diversity -->
+                <div class="glass-panel p-6 border-t-4 border-lime-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                             <span class="bg-lime-100 text-lime-600 w-8 h-8 flex items-center justify-center rounded-lg"><i class="fas fa-cubes"></i></span>
+                             Đa dạng nguồn cung (Số loại Vaccine)
+                        </h3>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="countryByVaccineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </main>
     </div>
-  </footer>
 
-  <!-- Script -->
-  <script>
-    const apiUrl = "/api/vaccines";
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // --- CHẾ ĐỘ DỮ LIỆU THẬT ---
+        // Đặt thành false để fetch từ API Flask
+        const useMockData = false; 
 
-    let rawData = [];
-    let filteredData = [];
+        // Fallback data
+        const mockData = []; 
 
-    let vaccinatedScatterChart = null;
-    let countryBarChart = null;
-    let perHundredChartObj = null;
-    let dailyChartObj = null;
-    let perHundredScatterChart = null;
+        let rawData = [];
+        // Chart instances
+        let trendChart = null;
+        let totalChart = null;
+        let rateChart = null;
+        let typeChart = null;
+        let monthlyChart = null;
+        let stackedChart = null;
+        let vaccineCountryChart = null;
+        let countryVaccineChart = null;
 
-    const countrySelect = document.getElementById("countrySelect");
-    const vaccineSelect = document.getElementById("vaccineSelect");
+        // --- FETCH DATA ---
+        async function initDashboard() {
+            try {
+                let data = [];
+                
+                if (useMockData) {
+                    await new Promise(r => setTimeout(r, 600)); 
+                    data = mockData;
+                } else {
+                    // LOCALHOST MODE
+                    const res = await fetch('/api/vaccines');
+                    if (!res.ok) throw new Error("API fail");
+                    data = await res.json();
+                }
+                
+                // Preprocess data
+                rawData = data.map(d => ({
+                    ...d,
+                    dateObj: new Date(d.date),
+                    total_vaccinations: parseFloat(d.total_vaccinations) || 0,
+                    people_vaccinated: parseFloat(d.people_vaccinated) || 0,
+                    people_fully_vaccinated: parseFloat(d.people_fully_vaccinated) || 0,
+                    daily_vaccinations: parseFloat(d.daily_vaccinations) || 0,
+                    people_fully_vaccinated_per_hundred: parseFloat(d.people_fully_vaccinated_per_hundred) || 0
+                }));
 
-    function parseCsvDate(str) {
-      if (!str) return null;
-      const parts = str.split("/");
-      if (parts.length !== 3) return null;
-      const [m, d, y] = parts;
-      return new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`);
-    }
+                if (rawData.length > 0) {
+                     const maxDate = rawData.reduce((a, b) => a.dateObj > b.dateObj ? a : b).dateObj;
+                     document.getElementById('lastUpdatedDate').textContent = maxDate.toLocaleDateString('vi-VN');
+                }
 
-    function applyFilters() {
-      const country = countrySelect.value;
-      const vaccine = vaccineSelect.value;
-      const startDate = document.getElementById("startDate").value;
-      const endDate = document.getElementById("endDate").value;
+                populateFilters();
+                updateDashboard(rawData);
 
-      filteredData = rawData.filter(d => {
-        if (country !== "all" && d.country !== country) return false;
-        if (vaccine !== "all" && (!d.vaccines || !d.vaccines.includes(vaccine))) return false;
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('dashboardContent').classList.remove('opacity-0', 'pointer-events-none');
 
-        if (startDate || endDate) {
-          const dt = parseCsvDate(d.date);
-          if (!dt) return false;
-          if (startDate && dt < new Date(startDate)) return false;
-          if (endDate && dt > new Date(endDate)) return false;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loadingOverlay').innerHTML = `
+                    <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                        <i class="fas fa-plug text-rose-500 text-4xl mb-3"></i>
+                        <p class="text-rose-600 font-bold mb-1">Không thể kết nối API</p>
+                        <p class="text-slate-500 text-sm">Chạy "python vaccines.py" chưa bạn ơi?</p>
+                        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Thử lại</button>
+                    </div>`;
+            }
         }
-        return true;
-      });
 
-      renderCards();
-      renderCharts();
-    }
+        // --- FILTERS ---
+        function populateFilters() {
+            const countrySet = new Set(rawData.map(d => d.country).filter(Boolean));
+            const vaccineSet = new Set();
+            
+            rawData.forEach(d => {
+                if(d.vaccines) {
+                    d.vaccines.split(',').forEach(v => vaccineSet.add(v.trim()));
+                }
+            });
 
-    function renderCards() {
-      const byCountry = new Map();
-      filteredData.forEach(d => {
-        if (!d.country) return;
-        const key = d.country;
-        const pv = Number(d.people_vaccinated_per_hundred ?? 0);
-        const pf = Number(d.people_fully_vaccinated_per_hundred ?? 0);
-        const dv = Number(d.daily_vaccinations ?? 0);
+            const countrySel = document.getElementById('countrySelect');
+            [...countrySet].sort().forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                countrySel.appendChild(opt);
+            });
 
-        if (!byCountry.has(key)) {
-          byCountry.set(key, { pv, pf, dv, count: 1 });
-        } else {
-          const obj = byCountry.get(key);
-          obj.pv += pv;
-          obj.pf += pf;
-          obj.dv += dv;
-          obj.count += 1;
+            const vaccineSel = document.getElementById('vaccineSelect');
+            [...vaccineSet].sort().forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = v;
+                vaccineSel.appendChild(opt);
+            });
         }
-      });
 
-      const countries = byCountry.size;
-      document.getElementById("countryCount").textContent =
-        countries ? countries.toLocaleString() : "-";
+        function applyFilters() {
+            const cVal = document.getElementById('countrySelect').value;
+            const vVal = document.getElementById('vaccineSelect').value;
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
 
-      let avgVacc = 0, avgFully = 0, avgDaily = 0;
-      if (countries) {
-        byCountry.forEach(v => {
-          avgVacc += v.pv / v.count;
-          avgFully += v.pf / v.count;
-          avgDaily += v.dv / v.count;
+            let filtered = rawData;
+
+            if (cVal !== 'all') {
+                filtered = filtered.filter(d => d.country === cVal);
+            }
+            if (vVal !== 'all') {
+                filtered = filtered.filter(d => d.vaccines && d.vaccines.includes(vVal));
+            }
+            if (startVal) {
+                const sDate = new Date(startVal);
+                filtered = filtered.filter(d => d.dateObj >= sDate);
+            }
+            if (endVal) {
+                const eDate = new Date(endVal);
+                filtered = filtered.filter(d => d.dateObj <= eDate);
+            }
+
+            updateDashboard(filtered);
+        }
+
+        // --- RENDER LOGIC ---
+        function updateDashboard(data) {
+            renderKPIs(data);
+            renderCharts(data);
+        }
+
+        function renderKPIs(data) {
+            const uniqueCountries = new Set(data.map(d => d.country)).size;
+            
+            const countryLatest = {};
+            data.forEach(d => {
+                if (!countryLatest[d.country] || d.dateObj > countryLatest[d.country].dateObj) {
+                    countryLatest[d.country] = d;
+                }
+            });
+            const latestEntries = Object.values(countryLatest);
+
+            const totalVac = latestEntries.reduce((acc, curr) => acc + curr.total_vaccinations, 0);
+            const peopleVac = latestEntries.reduce((acc, curr) => acc + curr.people_vaccinated, 0);
+            const fullVac = latestEntries.reduce((acc, curr) => acc + curr.people_fully_vaccinated, 0);
+
+            document.getElementById('kpiTotalVaccinations').textContent = totalVac.toLocaleString('vi-VN');
+            document.getElementById('kpiPeopleVaccinated').textContent = peopleVac.toLocaleString('vi-VN');
+            document.getElementById('kpiFullyVaccinated').textContent = fullVac.toLocaleString('vi-VN');
+            document.getElementById('kpiCountries').textContent = uniqueCountries;
+        }
+
+        function renderCharts(data) {
+            // Shared Logic
+            const countryLatest = {};
+            data.forEach(d => {
+                if (!countryLatest[d.country] || d.dateObj > countryLatest[d.country].dateObj) {
+                    countryLatest[d.country] = d;
+                }
+            });
+            const latestEntries = Object.values(countryLatest);
+
+            // 1. TREND CHART (Line)
+            const dateMap = {};
+            data.forEach(d => {
+                const dateKey = d.date; 
+                dateMap[dateKey] = (dateMap[dateKey] || 0) + d.daily_vaccinations;
+            });
+            const sortedDates = Object.keys(dateMap).sort((a,b) => new Date(a) - new Date(b));
+            const trendData = sortedDates.map(d => dateMap[d]);
+
+            const ctxTrend = document.getElementById('vaccineTrendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            
+            let gradientTrend = ctxTrend.createLinearGradient(0, 0, 0, 400);
+            gradientTrend.addColorStop(0, 'rgba(79, 70, 229, 0.5)');
+            gradientTrend.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+
+            trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Liều tiêm hàng ngày',
+                        data: trendData,
+                        borderColor: '#4f46e5',
+                        backgroundColor: gradientTrend,
+                        borderWidth: 2,
+                        pointRadius: 0, 
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, color: '#64748b' } },
+                        y: { grid: { borderDash: [5, 5], color: '#cbd5e1' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // 2. TOTAL DOSES (Doughnut)
+            const topTotal = latestEntries
+                .sort((a, b) => b.total_vaccinations - a.total_vaccinations)
+                .slice(0, 5);
+
+            const ctxTotal = document.getElementById('countryTotalChart').getContext('2d');
+            if (totalChart) totalChart.destroy();
+
+            totalChart = new Chart(ctxTotal, {
+                type: 'doughnut',
+                data: {
+                    labels: topTotal.map(d => d.country),
+                    datasets: [{
+                        data: topTotal.map(d => d.total_vaccinations),
+                        backgroundColor: ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: {family: 'Inter'} } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // 3. TOP RATES (Horizontal Bar)
+            const topRates = latestEntries
+                .filter(d => d.people_fully_vaccinated_per_hundred > 0)
+                .sort((a, b) => b.people_fully_vaccinated_per_hundred - a.people_fully_vaccinated_per_hundred)
+                .slice(0, 10);
+
+            const ctxRate = document.getElementById('topRateChart').getContext('2d');
+            if (rateChart) rateChart.destroy();
+
+            rateChart = new Chart(ctxRate, {
+                type: 'bar',
+                data: {
+                    labels: topRates.map(d => d.country),
+                    datasets: [{
+                        label: '% Tiêm chủng đầy đủ',
+                        data: topRates.map(d => d.people_fully_vaccinated_per_hundred),
+                        backgroundColor: '#f43f5e',
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 4. VACCINE TYPES (Polar Area)
+            const vaccineCounts = {};
+            latestEntries.forEach(d => {
+                if(d.vaccines) {
+                    const brands = d.vaccines.split(',').map(s => s.trim());
+                    brands.forEach(b => {
+                        vaccineCounts[b] = (vaccineCounts[b] || 0) + 1;
+                    });
+                }
+            });
+            const topVaccines = Object.entries(vaccineCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6); 
+
+            const ctxType = document.getElementById('vaccineTypeChart').getContext('2d');
+            if (typeChart) typeChart.destroy();
+
+            typeChart = new Chart(ctxType, {
+                type: 'polarArea',
+                data: {
+                    labels: topVaccines.map(v => v[0]),
+                    datasets: [{
+                        data: topVaccines.map(v => v[1]),
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.7)', 
+                            'rgba(6, 182, 212, 0.7)', 
+                            'rgba(16, 185, 129, 0.7)', 
+                            'rgba(245, 158, 11, 0.7)', 
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(139, 92, 246, 0.7)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: {size: 10} } }
+                    },
+                    scales: { r: { ticks: { display: false, backdropColor: 'transparent' } } }
+                }
+            });
+
+            // 5. MONTHLY PROGRESS (Bar Chart)
+            const monthMap = {};
+            data.forEach(d => {
+                // date format YYYY-MM-DD
+                if (d.date && d.daily_vaccinations) {
+                    const monthKey = d.date.substring(0, 7); // "YYYY-MM"
+                    monthMap[monthKey] = (monthMap[monthKey] || 0) + d.daily_vaccinations;
+                }
+            });
+            const sortedMonths = Object.keys(monthMap).sort();
+            
+            const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+            if (monthlyChart) monthlyChart.destroy();
+
+            monthlyChart = new Chart(ctxMonthly, {
+                type: 'bar',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [{
+                        label: 'Liều tiêm trong tháng',
+                        data: sortedMonths.map(m => monthMap[m]),
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { borderDash: [5, 5] }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // 6. STACKED ANALYSIS (People Vaccinated vs Fully Vaccinated)
+            // Use top 5 countries from total doses
+            const topCountries = topTotal.map(d => d.country);
+            // Calculate "Partially" = "People Vaccinated" - "Fully Vaccinated"
+            // Stack: [Fully, Partially]
+            const fullyData = topTotal.map(d => d.people_fully_vaccinated);
+            const partialData = topTotal.map(d => (d.people_vaccinated - d.people_fully_vaccinated));
+
+            const ctxStacked = document.getElementById('stackedChart').getContext('2d');
+            if (stackedChart) stackedChart.destroy();
+
+            stackedChart = new Chart(ctxStacked, {
+                type: 'bar',
+                data: {
+                    labels: topCountries,
+                    datasets: [
+                        {
+                            label: 'Tiêm đủ liều',
+                            data: fullyData,
+                            backgroundColor: '#8b5cf6', // violet
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Mới tiêm 1 mũi',
+                            data: partialData,
+                            backgroundColor: '#c4b5fd', // lighter violet
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, grid: { borderDash: [5, 5] }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // 7. VACCINE BY COUNTRY REACH (Horizontal Bar)
+            // Logic: Count how many countries use each vaccine brand
+            const vaccineReachMap = {};
+            latestEntries.forEach(d => {
+                if (d.vaccines) {
+                    const brands = d.vaccines.split(',').map(v => v.trim());
+                    brands.forEach(b => {
+                        vaccineReachMap[b] = (vaccineReachMap[b] || 0) + 1;
+                    });
+                }
+            });
+            // Sort by count descending
+            const sortedVaccineReach = Object.entries(vaccineReachMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10); // Take top 10
+
+            const ctxVacCountry = document.getElementById('vaccineByCountryChart').getContext('2d');
+            if (vaccineCountryChart) vaccineCountryChart.destroy();
+
+            vaccineCountryChart = new Chart(ctxVacCountry, {
+                type: 'bar',
+                data: {
+                    labels: sortedVaccineReach.map(item => item[0]),
+                    datasets: [{
+                        label: 'Số quốc gia sử dụng',
+                        data: sortedVaccineReach.map(item => item[1]),
+                        backgroundColor: 'rgba(6, 182, 212, 0.7)', // Cyan
+                        borderRadius: 4,
+                        barThickness: 15
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontal
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 8. COUNTRY PORTFOLIO DIVERSITY (Vertical Bar)
+            // Logic: Count number of vaccine types per country
+            const countryDiversity = latestEntries.map(d => ({
+                country: d.country,
+                count: d.vaccines ? d.vaccines.split(',').length : 0
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10); // Top 10 most diverse
+
+            const ctxCountryVac = document.getElementById('countryByVaccineChart').getContext('2d');
+            if (countryVaccineChart) countryVaccineChart.destroy();
+
+            countryVaccineChart = new Chart(ctxCountryVac, {
+                type: 'bar',
+                data: {
+                    labels: countryDiversity.map(d => d.country),
+                    datasets: [{
+                        label: 'Số loại Vaccine',
+                        data: countryDiversity.map(d => d.count),
+                        backgroundColor: 'rgba(132, 204, 22, 0.7)', // Lime
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { borderDash: [5, 5] } }
+                    }
+                }
+            });
+        }
+
+        // --- EVENTS ---
+        document.getElementById('countrySelect').addEventListener('change', applyFilters);
+        document.getElementById('vaccineSelect').addEventListener('change', applyFilters);
+        document.getElementById('startDate').addEventListener('change', applyFilters);
+        document.getElementById('endDate').addEventListener('change', applyFilters);
+        
+        document.getElementById('resetFilters').addEventListener('click', () => {
+            document.getElementById('countrySelect').value = 'all';
+            document.getElementById('vaccineSelect').value = 'all';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            applyFilters();
         });
-        avgVacc /= countries;
-        avgFully /= countries;
-        avgDaily /= countries;
-      }
 
-      document.getElementById("avgVaccinated").textContent =
-        countries ? avgVacc.toFixed(1) + "%" : "-";
-      document.getElementById("avgFully").textContent =
-        countries ? avgFully.toFixed(1) + "%" : "-";
-      document.getElementById("avgDaily").textContent =
-        countries ? Math.round(avgDaily).toLocaleString() : "-";
-    }
+        document.addEventListener('DOMContentLoaded', initDashboard);
 
-    function getLatestPerCountry(data) {
-      const latestMap = new Map();
-      data.forEach(d => {
-        if (!d.country || !d.date) return;
-        const dt = parseCsvDate(d.date);
-        if (!dt) return;
-        const key = d.country;
-        if (!latestMap.has(key) || dt > latestMap.get(key).dt) {
-          latestMap.set(key, { dt, row: d });
-        }
-      });
-      return Array.from(latestMap.values()).map(x => x.row);
-    }
-
-    function renderCharts() {
-      if (!filteredData.length) {
-        [vaccinatedScatterChart, countryBarChart, perHundredChartObj,
-         dailyChartObj, perHundredScatterChart].forEach(ch => {
-          if (ch) ch.destroy();
-        });
-        return;
-      }
-
-      const latest = getLatestPerCountry(filteredData);
-      createVaccinatedScatter(latest);
-      createCountryBar(latest);
-      createPerHundredChart(latest);
-      createDailyVaccinationsChart(filteredData);
-      createPerHundredScatter(filteredData);
-    }
-
-    function createVaccinatedScatter(data) {
-      const ctx = document.getElementById("vaccinatedScatter");
-      if (vaccinatedScatterChart) vaccinatedScatterChart.destroy();
-
-      const points = data
-        .filter(d =>
-          d.people_vaccinated_per_hundred != null ||
-          d.people_fully_vaccinated_per_hundred != null
-        )
-        .map(d => ({
-          x: Number(d.people_vaccinated_per_hundred ?? 0),
-          y: Number(d.people_fully_vaccinated_per_hundred ?? 0)
-        }));
-
-      if (!points.length) return;
-
-      vaccinatedScatterChart = new Chart(ctx, {
-        type: "scatter",
-        data: {
-          datasets: [{
-            label: "Vaccinated vs Fully vaccinated (%)",
-            data: points,
-            backgroundColor: "rgba(59,130,246,0.8)"
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              title: { text: "People vaccinated per hundred (%)", display: true }
-            },
-            y: {
-              title: { text: "People fully vaccinated per hundred (%)", display: true }
-            }
-          }
-        }
-      });
-    }
-
-    function createCountryBar(data) {
-      const ctx = document.getElementById("countryBar");
-      if (countryBarChart) countryBarChart.destroy();
-
-      const rows = data
-        .filter(d => d.country)
-        .map(d => ({
-          country: d.country,
-          pv: Number(d.people_vaccinated_per_hundred ?? 0),
-          pf: Number(d.people_fully_vaccinated_per_hundred ?? 0)
-        }))
-        .sort((a, b) => b.pv - a.pv)
-        .slice(0, 15);
-
-      if (!rows.length) return;
-
-      const labels = rows.map(r => r.country);
-      const pv = rows.map(r => r.pv);
-      const pf = rows.map(r => r.pf);
-
-      countryBarChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "People vaccinated per hundred",
-              data: pv,
-              backgroundColor: "rgba(59,130,246,0.85)"
-            },
-            {
-              label: "People fully vaccinated per hundred",
-              data: pf,
-              backgroundColor: "rgba(16,185,129,0.85)"
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-    }
-
-    function createPerHundredChart(data) {
-      const ctx = document.getElementById("perHundredChart");
-      if (perHundredChartObj) perHundredChartObj.destroy();
-
-      const rows = data
-        .filter(d => d.country)
-        .map(d => ({
-          country: d.country,
-          tvh: Number(d.total_vaccinations_per_hundred ?? 0),
-          pvh: Number(d.people_vaccinated_per_hundred ?? 0)
-        }))
-        .sort((a, b) => b.tvh - a.tvh)
-        .slice(0, 15);
-
-      if (!rows.length) return;
-
-      const labels = rows.map(r => r.country);
-      const tvh = rows.map(r => r.tvh);
-      const pvh = rows.map(r => r.pvh);
-
-      perHundredChartObj = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Total vaccinations per hundred",
-              data: tvh,
-              backgroundColor: "rgba(99,102,241,0.85)"
-            },
-            {
-              label: "People vaccinated per hundred",
-              data: pvh,
-              backgroundColor: "rgba(16,185,129,0.85)"
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-    }
-
-    function createDailyVaccinationsChart(data) {
-      const ctx = document.getElementById("dailyChart");
-      if (dailyChartObj) dailyChartObj.destroy();
-
-      const rows = data
-        .filter(d =>
-          d.date &&
-          (d.daily_vaccinations != null || d.daily_vaccinations_smoothed != null)
-        )
-        .map(d => ({
-          date: parseCsvDate(d.date),
-          raw: Number(d.daily_vaccinations ?? 0),
-          smoothed: Number(d.daily_vaccinations_smoothed ?? 0)
-        }))
-        .sort((a, b) => a.date - b.date)
-        .slice(0, 2000);
-
-      if (!rows.length) return;
-
-      const labels = rows.map(r =>
-        `${r.date.getFullYear()}-${String(r.date.getMonth()+1).padStart(2,"0")}-${String(r.date.getDate()).padStart(2,"0")}`
-      );
-      const raw = rows.map(r => r.raw);
-      const smooth = rows.map(r => r.smoothed);
-
-      dailyChartObj = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Daily vaccinations (raw)",
-              data: raw,
-              borderColor: "rgba(239,68,68,0.9)",
-              backgroundColor: "rgba(239,68,68,0.1)",
-              tension: 0.2,
-              borderWidth: 1
-            },
-            {
-              label: "Daily vaccinations (smoothed)",
-              data: smooth,
-              borderColor: "rgba(59,130,246,0.9)",
-              backgroundColor: "rgba(59,130,246,0.1)",
-              tension: 0.2,
-              borderWidth: 1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
-          stacked: false,
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-    }
-
-    function createPerHundredScatter(data) {
-      const ctx = document.getElementById("perHundredScatter");
-      if (perHundredScatterChart) perHundredScatterChart.destroy();
-
-      const points = data
-        .filter(d =>
-          d.people_vaccinated_per_hundred != null ||
-          d.people_fully_vaccinated_per_hundred != null
-        )
-        .map(d => ({
-          x: Number(d.people_vaccinated_per_hundred ?? 0),
-          y: Number(d.people_fully_vaccinated_per_hundred ?? 0)
-        }));
-
-      if (!points.length) return;
-
-      perHundredScatterChart = new Chart(ctx, {
-        type: "scatter",
-        data: {
-          datasets: [{
-            label: "Per hundred scatter",
-            data: points,
-            backgroundColor: "rgba(129,140,248,0.8)"
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              title: { text: "People vaccinated per hundred", display: true }
-            },
-            y: {
-              title: { text: "People fully vaccinated per hundred", display: true }
-            }
-          }
-        }
-      });
-    }
-
-const dashboardContent = document.getElementById("dashboardContent");
-
-async function init() {
-  const overlay = document.getElementById("loading");
-
-  try {
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    console.log("data length = ", data.length);
-    rawData = data || [];
-    filteredData = rawData.slice();
-
-    const countrySet = new Set();
-    const vaccineSet = new Set();
-
-    rawData.forEach(d => {
-      if (d.country) countrySet.add(d.country);
-      if (d.vaccines) {
-        d.vaccines.split(",").forEach(v => vaccineSet.add(v.trim()));
-      }
-    });
-
-    [...countrySet].sort().forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      countrySelect.appendChild(opt);
-    });
-
-    [...vaccineSet].sort().forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v;
-      vaccineSelect.appendChild(opt);
-    });
-
-    renderCards();
-    renderCharts();
-  } catch (err) {
-    console.error(err);
-  }
-
-  // Xong init: tắt loading, bật dashboard
-  if (overlay) {
-    overlay.style.display = "none";
-  }
-  if (dashboardContent) {
-    dashboardContent.classList.remove("opacity-0", "pointer-events-none");
-  }
-}
-
-// Sự kiện filter + reset
-countrySelect.addEventListener("change", applyFilters);
-vaccineSelect.addEventListener("change", applyFilters);
-document.getElementById("startDate").addEventListener("change", applyFilters);
-document.getElementById("endDate").addEventListener("change", applyFilters);
-document.getElementById("resetFilters").addEventListener("click", () => {
-  countrySelect.value = "all";
-  vaccineSelect.value = "all";
-  document.getElementById("startDate").value = "";
-  document.getElementById("endDate").value = "";
-  applyFilters();
-});
-
-// Khi DOM sẵn sàng: ẩn dashboard, hiện loading, rồi gọi init
-document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("loading");
-  if (overlay) {
-    overlay.style.opacity = "1";
-    overlay.style.pointerEvents = "auto";
-  }
-  init();
-});
-
-  </script>
+    </script>
 </body>
 </html>
