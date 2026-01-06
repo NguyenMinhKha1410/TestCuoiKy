@@ -20,9 +20,9 @@ def analytics():
 def get_vaccines():
     df = pd.read_csv(
         './data/country_vaccinations.csv',
-        sep=';',
+        sep=';', #file csv dùng dấu ; thay vì ,
         engine='python',
-        on_bad_lines='skip'
+        on_bad_lines='skip' #nếu dòng gặp lỗi -> bỏ qua
     )
     # ép kiểu object để pandas không tự xuất NaN đặc biệt
     for c in df.columns:
